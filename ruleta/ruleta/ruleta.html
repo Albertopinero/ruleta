@@ -1,0 +1,219 @@
+<!doctype html5>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>La ruleta del aprobado</title>
+        <!-- Carga la fuente desde google.
+             Para usar otra fuente http://www.google.com/fonts -->
+        <link href='http://fonts.googleapis.com/css?family=The+Girl+Next+Door' rel='stylesheet' type='text/css'>
+        <link href='ruleta.css' rel='stylesheet' type='text/css'>
+        <script>
+            // Almacenamos los nombres de las imágenes en una variable compleja.
+            // Se denomina tabla y se accede a los valores mediante el indice (empezando por 0).
+            // Por ejemplo: imagenes[0] contiene "rajoy.png"
+            var imagenes = ["../octane.png", "../universal.jpg", "../alfa.jpg", "../dominus.png", "../fennec.png"];
+            // Almacenamos el indice de la imagen que esta en cada recuadro.
+            var cuadro = [ 0, 0, 0, 0];
+            // Almacenamos el setInterval de cada recuadro de forma independiente.
+            var intervaloRuleta = [ null, null, null, null];
+            // Variable donde almacenamos el numero de recuadros que están cambiando.
+            var corriendo = 0;
+            // Intervalo del cambio de sombras.
+            var intervaloSombras;
+            var posicionSombras = [[2,2], [-2,2], [-2,-2], [2,-2]];
+            var posicionActualSombra = 0;
+            var puntos = 100;
+            
+            // Función que inicia la ruleta.
+            function ruleta() {
+                // Solo actua cuando estan los tres recuadros parados.
+                if (corriendo == 0) {
+                    // Para el efecto de las sombras.
+                    clearInterval(intervaloSombras);
+                    
+                    // Sortea la imagen con la que comienza cada recuadro.
+                        // Math.random() genera un número en el dominio [0-1)
+                        // Si lo multiplico por tres el dominio pasa a ser [0-3)
+                        // Esta operación genera decimales, para eliminarlos se usa Math.floor()
+                    for(i in cuadro)
+                        cuadro[i] = Math.floor(Math.random() * 4);
+                    
+                    // Genera los intervalos para que cada recuadro cambie de imagen cada centésima de segundo.
+                    intervaloRuleta[0] = setInterval(function() { cambiaImagen(0);}, 300);
+                    intervaloRuleta[1] = setInterval(function() { cambiaImagen(1);}, 300);
+                    intervaloRuleta[2] = setInterval(function() { cambiaImagen(2);}, 300);
+                    intervaloRuleta[3] = setInterval(function() { cambiaImagen(3);}, 300);
+                    
+                    // Al empezar están cambiando los tres recuadros.
+                    corriendo = 4;
+                }
+            }
+
+            function juego(){
+                if (puntos >= 10){
+                    puntos -= 10;
+                    document.getElementById("puntos").innerHTML = "Mis puntos: " + puntos
+                    ruleta()
+                }
+                else{
+                    document.getElementById("premio").innerHTML = "No tienes puntos -_-"
+                }
+            }
+            
+            // Función que cambia la imagen.
+            function cambiaImagen(x) {
+                // Si la imagen es la última paso a la primera.
+                //  Si no cambia al asiguiente imagen.
+                if(cuadro[x]>=4) cuadro[x]=0;
+                    else cuadro[x] = cuadro[x]+1;
+                
+                // Cambia la propiedad src de la imagen correspondiente en el html.
+                document.getElementById("imag"+x).src = imagenes[cuadro[x]];                
+            }
+            
+            // Función que para un recuadro de la ruleta.
+            function paraRuleta() {
+                // Solo para si hay alguna corriendo.
+                if (corriendo > 0) {
+                    // Como las tablas empiezan en cero, el ultimo valor es 2.
+                    // Restamos uno a los recuadros corriendo.
+                    corriendo = corriendo - 1;
+                    // Paramos el intervalo para que deje de cambiar la imagen del recuadro.
+                    clearInterval(intervaloRuleta[corriendo]);
+                    
+                    // Si hemos parado el último activamos el efecto de las sombras.
+                    if (corriendo==0) {
+                        cambiaSombras();
+                        premios();
+                    }
+                }
+            }
+            
+            // Funcion que activa el cambio de las sombras.
+            function cambiaSombras() {
+                // Define el intervalo de cambio de las sombras.
+                intervaloSombras=setInterval(circulaSombras, 100);
+            }
+            
+            
+            // Cambia las sombras de posición.
+            function circulaSombras() {
+                // Circula entre las posiciones de la sombra.
+                if(posicionActualSombra>=3) posicionActualSombra=0;
+                    else posicionActualSombra=posicionActualSombra+1;
+                
+                // Crea el estilo que hay que aplicar a la caja.
+                // p.e.: 2px 2px 5px #FF5050
+                //       2px arriba,  2px hacia la derecha y 5px de difuminado en color #FF5050
+                var estilo = posicionSombras[posicionActualSombra][0]+"px "+posicionSombras[posicionActualSombra][1]+"px 5px #FF5050";
+                 document.getElementById("imag0").style['boxShadow']=estilo;
+                 document.getElementById("imag1").style['boxShadow']=estilo;
+                 document.getElementById("imag2").style['boxShadow']=estilo;
+                 document.getElementById("imag3").style['boxShadow']=estilo;
+                }
+
+                function premios() {
+                const src1 = document.getElementById("imag0").getAttribute("src");
+                const src2 = document.getElementById("imag1").getAttribute("src");
+                const src3 = document.getElementById("imag2").getAttribute("src");
+                const src4 = document.getElementById("imag3").getAttribute("src");
+                const lista = [src1, src2, src3, src4];
+            
+                document.getElementById("premios").innerHTML = "Obteniendo puntaje";
+            
+                setTimeout(function() {
+                if (lista[0] === lista[1] && lista[0] === lista[2] && lista[0] === lista[3]) {
+                    if (lista[0] === imagenes[0]) {
+                    document.getElementById("premios").innerHTML = "Has obtenido 100 puntos";
+                    puntos+=100
+                    document.getElementById("puntos").innerHTML="Mis puntos:" + puntos
+                    setTimeout(function(){
+                        document.getElementById("premios").innerHTML = "";
+
+                    },3000)
+                    } else if (lista[0] === imagenes[1]) {
+                    document.getElementById("premios").innerHTML = "Has obtenido 200 puntos";
+                    puntos+=200
+                    document.getElementById("puntos").innerHTML="Mis puntos:" + puntos
+                    setTimeout(function(){
+                        document.getElementById("premios").innerHTML = "";
+
+                    },3000)
+                    } else if (lista[0] === imagenes[3]) {
+                    document.getElementById("premios").innerHTML = "Has obtenido 50 puntos";
+                    puntos+=50
+                    document.getElementById("puntos").innerHTML="Mis puntos:" + puntos
+                    setTimeout(function(){
+                        document.getElementById("premios").innerHTML = "";
+
+                    },3000)
+                    } else if (lista[0] === imagenes[4]) {                    
+                    document.getElementById("premios").innerHTML = "Has obtenido 150 puntos";
+                    puntos+=150
+                    document.getElementById("puntos").innerHTML="Mis puntos:" + puntos
+                    setTimeout(function(){
+                        document.getElementById("premios").innerHTML = "";
+
+                    },3000)
+                    } else if (lista[0] === imagenes[2]) {                    
+                    document.getElementById("premios").innerHTML = "Has obtenido 300 puntos";
+                    puntos+=300
+                    document.getElementById("puntos").innerHTML="Mis puntos:" + puntos
+                    setTimeout(function(){
+                        document.getElementById("premios").innerHTML = "";
+
+                    },3000)
+                    }
+                    lista = [];
+                } else {
+                    document.getElementById("premios").innerHTML = "Has obtenido 0 puntos.";
+                    setTimeout(function(){
+                        document.getElementById("premios").innerHTML = " ";
+
+                    },3000)
+                }
+                }, 1000);
+            }
+            
+        </script>
+    </head>
+    <header>
+        <h1>Rocket Pass</h1> 
+     </header>
+    <body onload="cambiaSombras();">
+        <div class="premios">
+            <p id="premios"></p>
+        </div>
+        <div class="recompensa">
+            <h1>RECOMPENSAS</h1>
+            <h2>Dominus - 50 PUNTOS</h2>
+            <img src="../dominus.png"><img src="../dominus.png"><img src="../dominus.png"><img src="../dominus.png">
+            <h2>Octane - 100 PUNTOS</h2>
+            <img src="../octane.png"><img src="../octane.png"><img src="../octane.png"><img src="../octane.png">    
+            <h2>Fennec - 150 PUNTOS</h2>
+            <img src="../fennec.png"><img src="../fennec.png"><img src="../fennec.png"><img src="../fennec.png">
+            <h2>Universal - 200 PUNTOS</h2>
+            <img src="../universal.jpg"><img src="../universal.jpg"><img src="../universal.jpg"><img src="../universal.jpg">
+            <h2>Alfa - 300 PUNTOS</h2>
+            <img src="../alfa.jpg"><img src="../alfa.jpg"><img src="../alfa.jpg"><img src="../alfa.jpg">
+        </div>
+
+        <div class="contenedor">
+            <div class="imagenes">
+                <img id="imag3" src="../alfa.jpg">
+                <img id="imag2" src="../fennec.png">
+                <img id="imag1" src="../universal.jpg">
+                <img id="imag0" src="../octane.png">
+            </div>
+            <div class="botones">
+                <div class="boton" id="iniciar" onclick="ruleta();">Iniciar</div>
+                <div class="boton" id="parar" onclick="paraRuleta();">Parar</div>
+                <div class="boton" id="parar 2" onclick="paraRuleta();paraRuleta();">Parar 2</div>
+                <div class="boton" id="parar todos" onclick="paraRuleta();paraRuleta();paraRuleta();paraRuleta();">Parar 4 </div>
+            </div>
+        </div>
+        <div class="puntuacion">
+            <p id="puntos">Puntos: 100</p> 
+         </div>
+    </body>
+</html>
